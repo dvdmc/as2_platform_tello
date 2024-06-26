@@ -213,7 +213,9 @@ bool TelloCommandSender::entrySDKMode()
 
 bool TelloCommandSender::setPort(const int port_state, const int port_camera)
 {
-  return sendControlCommand("port " + std::to_string(port_state) + " " + std::to_string(port_camera));
+  return sendControlCommand(
+    "port " + std::to_string(port_state) + " " +
+    std::to_string(port_camera));
 }
 
 bool TelloCommandSender::takeoff()

@@ -193,11 +193,11 @@ public:
 
   /**
    * @brief Set State and Camera Stream Ports
-   * 
+   *
    * @return true if command was sent
    */
   bool setPort(
-    const int port_state = 8890, 
+    const int port_state = 8890,
     const int port_camera = 11111);
 
   /**
