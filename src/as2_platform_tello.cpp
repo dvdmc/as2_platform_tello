@@ -129,42 +129,7 @@ TelloPlatform::TelloPlatform(const rclcpp::NodeOptions & options)
       std::bind(&TelloPlatform::readCameraTimerCallback, this));
 
     // Create camera sensor
-    this->declare_parameter<std::string>("camera.camera_name");
-    std::string camera_name;
-    this->get_parameter("camera.camera_name", camera_name);
-    camera_ptr_ = std::make_shared<as2::sensors::Camera>(camera_name, this);
-
-    // Set camera info
-    this->declare_parameter<int>("camera.image_width");
-    this->declare_parameter<int>("camera.image_height");
-    this->declare_parameter<std::vector<double>>("camera.camera_matrix");
-    this->declare_parameter<std::string>("camera.distortion_model");
-    this->declare_parameter<std::vector<double>>("camera.distortion_coefficients");
-    this->declare_parameter<std::vector<double>>("camera.rectification_matrix");
-    this->declare_parameter<std::vector<double>>("camera.projection_matrix");
-
-    sensor_msgs::msg::CameraInfo cam_info;
-    std::vector<double> matrix;
-    this->get_parameter("camera.image_width", cam_info.width);
-    this->get_parameter("camera.image_height", cam_info.height);
-    this->get_parameter("camera.camera_matrix", matrix);
-    RCLCPP_INFO(this->get_logger(), "camera.camera_matrix");
-    convertVectorToArray(matrix, cam_info.k);
-    this->get_parameter("camera.distortion_model", cam_info.distortion_model);
-    RCLCPP_INFO(this->get_logger(), "camera.distortion_coefficients");
-    this->get_parameter("camera.distortion_coefficients", cam_info.d);
-    this->get_parameter("camera.rectification_matrix", matrix);
-    RCLCPP_INFO(this->get_logger(), "camera.rectification_matrix");
-    convertVectorToArray(matrix, cam_info.r);
-    this->get_parameter("camera.projection_matrix", matrix);
-    RCLCPP_INFO(this->get_logger(), "camera.projection_matrix");
-    convertVectorToArray(matrix, cam_info.p);
-    camera_ptr_->setParameters(cam_info, "bgr8");
-
-    // Set camera transforms
-    std::string camera_link = as2::tf::generateTfName(this, "camera_link");
-    camera_ptr_->setStaticTransform(
-      camera_link, base_link_frame_id_, 0.035, 0.0, 0.0, -M_PI_2, 0.0, -M_PI_2);
+    camera_ptr_ = std::make_shared<as2::sensors::Camera>(this, "camera");
 
     // Enable video stream
     std::string stream_ip;

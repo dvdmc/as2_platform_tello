@@ -39,67 +39,60 @@ __version__ = '0.1.0'
 import os
 
 from ament_index_python.packages import get_package_share_directory
-import as2_core.launch_param_utils as as2_utils
+from as2_core.declare_launch_arguments_from_config_file import DeclareLaunchArgumentsFromConfigFile
+from as2_core.launch_configuration_from_config_file import LaunchConfigurationFromConfigFile
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import (EnvironmentVariable, LaunchConfiguration,
-                                  PathJoinSubstitution)
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 
 
-def generate_launch_description():
-    """Entrypoint."""
+def generate_launch_description() -> LaunchDescription:
+    """
+    Entry point for launch file.
+
+    :return: Launch description
+    :rtype: LaunchDescription
+    """
     # Get default platform configuration file
     package_folder = get_package_share_directory(
         'as2_platform_tello')
     platform_config_file = os.path.join(package_folder,
                                         'config/platform_default.yaml')
-    camera_calibration_file = \
-        os.path.join(package_folder, 'config/camera_calibration.yaml')
-
-    control_modes = PathJoinSubstitution(
-        [FindPackageShare('as2_platform_tello'),
-         'config', 'control_modes.yaml']
-    )
-
-    return LaunchDescription(
-        [
-            DeclareLaunchArgument(
-                'namespace',
-                default_value=EnvironmentVariable(
-                    'AEROSTACK2_SIMULATION_DRONE_ID'),
-                description='Drone namespace',
-            ),
-            DeclareLaunchArgument(
-                'control_modes_file',
-                default_value=control_modes,
-                description='Platform control modes file',
-            ),
-            DeclareLaunchArgument(
-                'camera_calibration_file',
-                default_value=camera_calibration_file,
-                description='Camera calibration file',
-            ),
-            *as2_utils.declare_launch_arguments(
-                'config_file',
-                default_value=platform_config_file,
-                description='Configuration file'),
-            Node(
-                package='as2_platform_tello',
-                executable='as2_platform_tello_node',
-                name='platform',
-                namespace=LaunchConfiguration('namespace'),
-                output='screen',
-                emulate_tty=True,
-                parameters=[
-                    *as2_utils.launch_configuration('config_file',
-                                                    default_value=platform_config_file),
-                    {
-                        'control_modes_file': LaunchConfiguration('control_modes_file'),
-                    },
-                    LaunchConfiguration('camera_calibration_file'),
-                ],
-            ),
+    control_modes = os.path.join(package_folder,
+                                 'config/control_modes.yaml')
+    return LaunchDescription([
+        DeclareLaunchArgument('log_level',
+                              description='Logging level',
+                              default_value='info'),
+        DeclareLaunchArgument('namespace',
+                              description='Drone namespace',
+                              default_value=EnvironmentVariable(
+                                  'AEROSTACK2_SIMULATION_DRONE_ID')),
+        DeclareLaunchArgument('control_modes_file',
+                              default_value=control_modes,
+                              description='Platform control modes file'),
+        DeclareLaunchArgumentsFromConfigFile(
+            name='platform_config_file',
+            source_file=platform_config_file,
+            description='Configuration file'),
+        Node(
+            package='as2_platform_tello',
+            executable='as2_platform_tello_node',
+            name='platform',
+            namespace=LaunchConfiguration('namespace'),
+            output='screen',
+            arguments=['--ros-args', '--log-level',
+                       LaunchConfiguration('log_level')],
+            emulate_tty=True,
+            parameters=[
+                {
+                    'control_modes_file': LaunchConfiguration('control_modes_file'),
+                },
+                LaunchConfigurationFromConfigFile(
+                    'platform_config_file',
+                    default_file=platform_config_file)
+            ],
+        ),
         ]
     )
