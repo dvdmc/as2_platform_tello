@@ -54,6 +54,7 @@ std::shared_ptr<TelloPlatform> get_node(
     ament_index_cpp::get_package_share_directory("as2_platform_tello");
   const std::string control_modes_config_file = package_path + "/config/control_modes.yaml";
   const std::string platform_config_file = package_path + "/config/platform_default.yaml";
+  const std::string camera_calibration = package_path + "/config/camera_calibration.yaml";
 
   std::vector<std::string> node_args = {
     "--ros-args",
@@ -65,6 +66,8 @@ std::shared_ptr<TelloPlatform> get_node(
     "control_modes_file:=" + control_modes_config_file,
     "--params-file",
     platform_config_file,
+    "--params-file",
+    camera_calibration,
   };
 
   rclcpp::NodeOptions node_options;

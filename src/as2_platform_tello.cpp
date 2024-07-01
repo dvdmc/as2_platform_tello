@@ -111,6 +111,11 @@ TelloPlatform::TelloPlatform(const rclcpp::NodeOptions & options)
     std::chrono::duration<double>(1.0 / ping_freq),
     std::bind(&TelloPlatform::pingTimerCallback, this));
 
+  // TF frames id
+  odom_frame_id_ = as2::tf::generateTfName(this, "odom");
+  base_link_frame_id_ = as2::tf::generateTfName(this, "base_link");
+  imu_frame_id_ = as2::tf::generateTfName(this, "imu");
+
   // Video stream timer
   bool enable_video_stream;
   this->declare_parameter<bool>("camera.enable", false);
@@ -124,22 +129,44 @@ TelloPlatform::TelloPlatform(const rclcpp::NodeOptions & options)
       std::bind(&TelloPlatform::readCameraTimerCallback, this));
 
     // Create camera sensor
-    camera_ptr_ = std::make_shared<as2::sensors::Camera>("camera", this);
-    // TODO(RPS98): fill camera info and transform
+    this->declare_parameter<std::string>("camera.camera_name");
+    std::string camera_name;
+    this->get_parameter("camera.camera_name", camera_name);
+    camera_ptr_ = std::make_shared<as2::sensors::Camera>(camera_name, this);
+
+    // Set camera info
+    this->declare_parameter<int>("camera.image_width");
+    this->declare_parameter<int>("camera.image_height");
+    this->declare_parameter<std::vector<double>>("camera.camera_matrix");
+    this->declare_parameter<std::string>("camera.distortion_model");
+    this->declare_parameter<std::vector<double>>("camera.distortion_coefficients");
+    this->declare_parameter<std::vector<double>>("camera.rectification_matrix");
+    this->declare_parameter<std::vector<double>>("camera.projection_matrix");
+
     sensor_msgs::msg::CameraInfo cam_info;
-    cam_info.height = 720;
-    cam_info.width = 960;
-    cam_info.distortion_model = "plumb_bob";
-    cam_info.d = {-0.041948, 0.048619, -0.022789, -0.004038, 0.000000};
-    cam_info.k =
-    {919.424717, 0.000000, 459.655779, 0.000000, 911.926190, 323.551997, 0.000000, 0.000000,
-      1.000000};
-    cam_info.r =
-    {1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000};
-    cam_info.p =
-    {924.081787, 0.000000, 455.713683, 0.000000, 0.000000, 904.971619, 310.291689, 0.000000,
-      0.000000, 0.000000, 1.000000, 0.000000};
-    camera_ptr_->setParameters(cam_info, "bgr8");
+    std::vector<double> matrix;
+    this->get_parameter("camera.image_width", cam_info.width);
+    this->get_parameter("camera.image_height", cam_info.height);
+    this->get_parameter("camera.camera_matrix", matrix);
+    RCLCPP_INFO(this->get_logger(), "camera.camera_matrix");
+    convertVectorToArray(matrix, cam_info.k);
+    this->get_parameter("camera.distortion_model", cam_info.distortion_model);
+    RCLCPP_INFO(this->get_logger(), "camera.distortion_coefficients");
+    this->get_parameter("camera.distortion_coefficients", cam_info.d);
+    this->get_parameter("camera.rectification_matrix", matrix);
+    RCLCPP_INFO(this->get_logger(), "camera.rectification_matrix");
+    convertVectorToArray(matrix, cam_info.r);
+    this->get_parameter("camera.projection_matrix", matrix);
+    RCLCPP_INFO(this->get_logger(), "camera.projection_matrix");
+    convertVectorToArray(matrix, cam_info.p);
+    camera_ptr_->setCameraInfo(cam_info, "bgr8");
+
+    // Set camera transforms
+    RCLCPP_INFO(this->get_logger(), "base_link_frame_id_ : %s", base_link_frame_id_.c_str());
+    camera_ptr_->setCameraMountTransform(
+      base_link_frame_id_, 0.035, 0.0, 0.0, 0.0, 0.0, 0.0);
+    camera_ptr_->setCameraLinkTransform(
+      0.0, 0.0, 0.0, -M_PI_2, 0.0, -M_PI_2);
 
     // Enable video stream
     std::string stream_ip;
@@ -185,11 +212,6 @@ void TelloPlatform::configureSensors()
   battery_ptr_ = std::make_shared<as2::sensors::Battery>(
     as2_names::topics::sensor_measurements::battery, this);
   barometer_ptr_ = std::make_shared<as2::sensors::Barometer>("barometer", this);
-
-  // Odometry parameters
-  odom_frame_id_ = as2::tf::generateTfName(this, "odom");
-  base_link_frame_id_ = as2::tf::generateTfName(this, "base_link");
-  imu_frame_id_ = as2::tf::generateTfName(this, "imu");
 }
 
 bool TelloPlatform::ownSendCommand()
@@ -339,7 +361,13 @@ void TelloPlatform::pingTimerCallback()
   tello_command_sender_ptr_->getTime(response);
 
   // cast response to int
-  const auto & time = std::stoi(response);
+  int time = -1;
+  try {
+    time = std::stoi(response);
+  } catch (std::invalid_argument) {
+    RCLCPP_ERROR(this->get_logger(), "Ping response unknow integer: %s", response.c_str());
+    return;
+  }
 
   if (time > 0) {
     const auto & clock = this->get_clock();

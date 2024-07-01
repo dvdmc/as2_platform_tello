@@ -42,6 +42,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "tello/tello.hpp"
 
@@ -186,6 +187,31 @@ private:
    * @param max_speed Maximum speed.
   */
   double limitSeed(const double & v, const double & min_speed, const double & max_speed);
+
+  /**
+   * @brief Convert a vector to an array.
+   *
+   * @param vec Vector to convert.
+   * @param array Array to store the data.
+   * @return true If the conversion was successful.
+   */
+  template<std::size_t N>
+  bool convertVectorToArray(
+    const std::vector<double> & vec, std::array<double, N> & array)
+  {
+    // Check if the vector has the same size as the array
+    if (vec.size() != array.size()) {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "The vector size is different from the array size. Vector size: %ld, Array size: %ld",
+        vec.size(), array.size());
+      return false;
+    }
+
+    // Copy the vector to the array
+    std::memcpy(array.data(), vec.data(), array.size() * sizeof(double));
+    return true;
+  }
 };  // class TelloPlatform
 
 }  // namespace as2_tello_platform

@@ -55,6 +55,8 @@ def generate_launch_description():
         'as2_platform_tello')
     platform_config_file = os.path.join(package_folder,
                                         'config/platform_default.yaml')
+    camera_calibration_file = \
+        os.path.join(package_folder, 'config/camera_calibration.yaml')
 
     control_modes = PathJoinSubstitution(
         [FindPackageShare('as2_platform_tello'),
@@ -74,6 +76,11 @@ def generate_launch_description():
                 default_value=control_modes,
                 description='Platform control modes file',
             ),
+            DeclareLaunchArgument(
+                'camera_calibration_file',
+                default_value=camera_calibration_file,
+                description='Camera calibration file',
+            ),
             *as2_utils.declare_launch_arguments(
                 'config_file',
                 default_value=platform_config_file,
@@ -90,7 +97,8 @@ def generate_launch_description():
                                                     default_value=platform_config_file),
                     {
                         'control_modes_file': LaunchConfiguration('control_modes_file'),
-                    }
+                    },
+                    LaunchConfiguration('camera_calibration_file'),
                 ],
             ),
         ]
