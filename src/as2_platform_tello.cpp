@@ -159,14 +159,12 @@ TelloPlatform::TelloPlatform(const rclcpp::NodeOptions & options)
     this->get_parameter("camera.projection_matrix", matrix);
     RCLCPP_INFO(this->get_logger(), "camera.projection_matrix");
     convertVectorToArray(matrix, cam_info.p);
-    camera_ptr_->setCameraInfo(cam_info, "bgr8");
+    camera_ptr_->setParameters(cam_info, "bgr8");
 
     // Set camera transforms
-    RCLCPP_INFO(this->get_logger(), "base_link_frame_id_ : %s", base_link_frame_id_.c_str());
-    camera_ptr_->setCameraMountTransform(
-      base_link_frame_id_, 0.035, 0.0, 0.0, 0.0, 0.0, 0.0);
-    camera_ptr_->setCameraLinkTransform(
-      0.0, 0.0, 0.0, -M_PI_2, 0.0, -M_PI_2);
+    std::string camera_link = as2::tf::generateTfName(this, "camera_link");
+    camera_ptr_->setStaticTransform(
+      camera_link, base_link_frame_id_, 0.035, 0.0, 0.0, -M_PI_2, 0.0, -M_PI_2);
 
     // Enable video stream
     std::string stream_ip;
