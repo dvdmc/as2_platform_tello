@@ -54,7 +54,6 @@ std::shared_ptr<TelloPlatform> get_node(
     ament_index_cpp::get_package_share_directory("as2_platform_tello");
   const std::string control_modes_config_file = package_path + "/config/control_modes.yaml";
   const std::string platform_config_file = package_path + "/config/platform_default.yaml";
-  const std::string camera_calibration = package_path + "/config/camera_calibration.yaml";
 
   std::vector<std::string> node_args = {
     "--ros-args",
@@ -66,8 +65,6 @@ std::shared_ptr<TelloPlatform> get_node(
     "control_modes_file:=" + control_modes_config_file,
     "--params-file",
     platform_config_file,
-    "--params-file",
-    camera_calibration,
   };
 
   rclcpp::NodeOptions node_options;
@@ -130,67 +127,69 @@ int platform_test()
   executor_thread_util.start();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-  // Enable test command send timer
-  test_node->setCommandSendTimerState(true, 100.0);
+  spinForTime(1000.0, test_node);
 
-  // Wait 2 seconds
-  spinForTime(2.0, test_node);
+  // // Enable test command send timer
+  // test_node->setCommandSendTimerState(true, 100.0);
 
-  // Takeoff
-  RCLCPP_INFO(test_node->get_logger(), "Taking off");
-  if (!test_node->takeoffPlatform(false)) {return 1;}
+  // // Wait 2 seconds
+  // spinForTime(2.0, test_node);
 
-  // Set control mode to speed
-  RCLCPP_INFO(test_node->get_logger(), "Setting control mode to speed");
-  as2_msgs::msg::ControlMode desired_control_mode;
-  desired_control_mode.control_mode = as2_msgs::msg::ControlMode::SPEED;
-  desired_control_mode.yaw_mode = as2_msgs::msg::ControlMode::YAW_SPEED;
-  desired_control_mode.reference_frame = as2_msgs::msg::ControlMode::LOCAL_ENU_FRAME;
-  if (!test_node->setControlMode(desired_control_mode, false)) {
-    return 1;
-  }
+  // // Takeoff
+  // RCLCPP_INFO(test_node->get_logger(), "Taking off");
+  // if (!test_node->takeoffPlatform(false)) {return 1;}
 
-  // Send command
-  RCLCPP_INFO(test_node->get_logger(), "Sending command");
-  geometry_msgs::msg::TwistStamped desired_twist;
-  desired_twist.header.frame_id = as2::tf::generateTfName(
-    test_node->get_namespace(), "base_link");
-  desired_twist.twist.linear.x = 0.4;
-  desired_twist.twist.linear.y = 0.0;
-  desired_twist.twist.linear.z = 0.1;
-  desired_twist.twist.angular.x = 0.0;
-  desired_twist.twist.angular.y = 0.0;
-  desired_twist.twist.angular.z = 0.0;
-  test_node->setCommandTwist(desired_twist);
-  spinForTime(2.0, test_node);
+  // // Set control mode to speed
+  // RCLCPP_INFO(test_node->get_logger(), "Setting control mode to speed");
+  // as2_msgs::msg::ControlMode desired_control_mode;
+  // desired_control_mode.control_mode = as2_msgs::msg::ControlMode::SPEED;
+  // desired_control_mode.yaw_mode = as2_msgs::msg::ControlMode::YAW_SPEED;
+  // desired_control_mode.reference_frame = as2_msgs::msg::ControlMode::LOCAL_ENU_FRAME;
+  // if (!test_node->setControlMode(desired_control_mode, false)) {
+  //   return 1;
+  // }
 
-  // Send command
-  RCLCPP_INFO(test_node->get_logger(), "Sending command");
-  desired_twist.header.frame_id = as2::tf::generateTfName(
-    test_node->get_namespace(), "base_link");
-  desired_twist.twist.linear.x = -0.3;
-  desired_twist.twist.linear.y = 0.0;
-  desired_twist.twist.linear.z = 0.0;
-  desired_twist.twist.angular.x = 0.0;
-  desired_twist.twist.angular.y = 0.0;
-  desired_twist.twist.angular.z = 0.0;
-  test_node->setCommandTwist(desired_twist);
-  spinForTime(2.0, test_node);
+  // // Send command
+  // RCLCPP_INFO(test_node->get_logger(), "Sending command");
+  // geometry_msgs::msg::TwistStamped desired_twist;
+  // desired_twist.header.frame_id = as2::tf::generateTfName(
+  //   test_node->get_namespace(), "base_link");
+  // desired_twist.twist.linear.x = 0.4;
+  // desired_twist.twist.linear.y = 0.0;
+  // desired_twist.twist.linear.z = 0.1;
+  // desired_twist.twist.angular.x = 0.0;
+  // desired_twist.twist.angular.y = 0.0;
+  // desired_twist.twist.angular.z = 0.0;
+  // test_node->setCommandTwist(desired_twist);
+  // spinForTime(2.0, test_node);
 
-  // Send hover command
-  RCLCPP_INFO(test_node->get_logger(), "Setting control mode to hover");
-  as2_msgs::msg::ControlMode desired_hover_control_mode;
-  desired_hover_control_mode.control_mode = as2_msgs::msg::ControlMode::HOVER;
-  desired_hover_control_mode.yaw_mode = as2_msgs::msg::ControlMode::UNSET;
-  desired_hover_control_mode.reference_frame = as2_msgs::msg::ControlMode::UNSET;
-  if (!test_node->setControlMode(desired_hover_control_mode, false)) {
-    return 1;
-  }
-  spinForTime(2.0, test_node);
+  // // Send command
+  // RCLCPP_INFO(test_node->get_logger(), "Sending command");
+  // desired_twist.header.frame_id = as2::tf::generateTfName(
+  //   test_node->get_namespace(), "base_link");
+  // desired_twist.twist.linear.x = -0.3;
+  // desired_twist.twist.linear.y = 0.0;
+  // desired_twist.twist.linear.z = 0.0;
+  // desired_twist.twist.angular.x = 0.0;
+  // desired_twist.twist.angular.y = 0.0;
+  // desired_twist.twist.angular.z = 0.0;
+  // test_node->setCommandTwist(desired_twist);
+  // spinForTime(2.0, test_node);
 
-  // Land
-  RCLCPP_INFO(test_node->get_logger(), "Landing");
-  if (!test_node->landPlatform(false)) {return 1;}
+  // // Send hover command
+  // RCLCPP_INFO(test_node->get_logger(), "Setting control mode to hover");
+  // as2_msgs::msg::ControlMode desired_hover_control_mode;
+  // desired_hover_control_mode.control_mode = as2_msgs::msg::ControlMode::HOVER;
+  // desired_hover_control_mode.yaw_mode = as2_msgs::msg::ControlMode::UNSET;
+  // desired_hover_control_mode.reference_frame = as2_msgs::msg::ControlMode::UNSET;
+  // if (!test_node->setControlMode(desired_hover_control_mode, false)) {
+  //   return 1;
+  // }
+  // spinForTime(2.0, test_node);
+
+  // // Land
+  // RCLCPP_INFO(test_node->get_logger(), "Landing");
+  // if (!test_node->landPlatform(false)) {return 1;}
 
   // Clean
   executor_thread_util.stop();
