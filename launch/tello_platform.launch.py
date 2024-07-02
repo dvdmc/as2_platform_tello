@@ -76,6 +76,11 @@ def generate_launch_description() -> LaunchDescription:
             name='platform_config_file',
             source_file=platform_config_file,
             description='Configuration file'),
+        DeclareLaunchArgument(
+            'camera_calibration_file',
+            default_value='',
+            description='Camera calibration file',
+        ),
         Node(
             package='as2_platform_tello',
             executable='as2_platform_tello_node',
@@ -91,8 +96,9 @@ def generate_launch_description() -> LaunchDescription:
                 },
                 LaunchConfigurationFromConfigFile(
                     'platform_config_file',
-                    default_file=platform_config_file)
+                    default_file=platform_config_file),
+                LaunchConfiguration('camera_calibration_file'),
             ],
         ),
-        ]
+    ]
     )
