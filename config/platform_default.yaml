@@ -24,7 +24,7 @@
         yaw: -1.57079632679 # Rotation around z (rad)
       image_width: 960 # Image width (px)
       image_height: 720 # Image height (px)
-      camera_name: tello_camera # Camera name
+      camera_name: camera # Camera name
       camera_matrix: 
         rows: 3
         cols: 3
