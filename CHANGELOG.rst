@@ -2,8 +2,8 @@
 Changelog for package as2_platform_tello
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2024-08-20)
+------------------
 * [feat] Default camera name: camera
 * [test] Update test to load camera calibration
 * [feat] added optional calibration config file
