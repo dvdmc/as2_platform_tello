@@ -2,6 +2,17 @@
 Changelog for package as2_platform_tello
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [feat] Default camera name: camera
+* [test] Update test to load camera calibration
+* [feat] added optional calibration config file
+* [feat] Create sensor camera using as2::core
+* [feat] Local port config for multi-drone, port reconfiguration for state and video and temporary CamInfo to enable streaming.
+* [test] Use ament_lint tests
+* [ci] new ci added
+* Contributors: Mickey Li, Miguel Fernandez-Cortizas, Rafael Perez-Segui, pariaspe
+
 1.0.9 (2024-03-25)
 ------------------
 * Missing params and new file name
