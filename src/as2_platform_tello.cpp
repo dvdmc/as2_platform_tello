@@ -90,7 +90,7 @@ TelloPlatform::TelloPlatform(const rclcpp::NodeOptions & options)
 
   // Get tf timeout
   double tf_timeout_threshold;
-  this->declare_parameter<double>("tf_timeout_threshold", 0.1);
+  // this->declare_parameter<double>("tf_timeout_threshold", 0.1); This seems to be already declared which is not valid in ROS 2 Jazzy anymore.
   this->get_parameter("tf_timeout_threshold", tf_timeout_threshold);
   tf_timeout_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(tf_timeout_threshold));
